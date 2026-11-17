@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review History</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f4fa;
+            padding: 30px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #294c80;
+            text-align: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        input, select, button {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #294c80;
+            color: white;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #294c80;
+            color: white;
+        }
+
+        .Positive {
+            color: green;
+            font-weight: bold;
+        }
+
+        .Negative {
+            color: red;
+            font-weight: bold;
+        }
+
+        .Neutral {
+            color: orange;
+            font-weight: bold;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #294c80;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Customer Review History</h1>
+
+    <form method="GET" action="/history" class="filters">
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search product name"
+            value="{{ search }}"
+        >
+
+        <select name="sentiment">
+            <option value="">All Sentiments</option>
+
+            <option value="Positive"
+                {% if selected_sentiment == "Positive" %}selected{% endif %}>
+                Positive
+            </option>
+
+            <option value="Negative"
+                {% if selected_sentiment == "Negative" %}selected{% endif %}>
+                Negative
+            </option>
+
+            <option value="Neutral"
+                {% if selected_sentiment == "Neutral" %}selected{% endif %}>
+                Neutral
+            </option>
+        </select>
+
+        <button type="submit">Search / Filter</button>
+
+        <a href="/history">Reset</a>
+
+    </form>
+
+    <table>
+
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Review</th>
+            <th>Sentiment</th>
+        </tr>
+
+        {% for item in records %}
+
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.product }}</td>
+            <td>{{ item.review }}</td>
+            <td class="{{ item.sentiment }}">
+                {{ item.sentiment }}
+            </td>
+        </tr>
+
+        {% else %}
+
+        <tr>
+            <td colspan="4">No matching reviews found.</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    <a href="/">← Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Sentiment Analyzer</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f5fc;
+            color: #26344d;
+        }
+
+        header {
+            background: #243b67;
+            color: white;
+            padding: 22px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 18px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: 30px auto;
+            padding: 15px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+            color: #243b67;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 12px #00000010;
+        }
+
+        input {
+            width: 65%;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 13px 22px;
+            background: #315b9b;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1e3d70;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 12px #00000010;
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        .card p {
+            font-size: 30px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .total { color: #315b9b; }
+        .positive { color: #16a36a; }
+        .negative { color: #e34b4b; }
+        .neutral { color: #e5a32d; }
+
+        .chart-box, .reviews-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 25px;
+            box-shadow: 0 3px 12px #00000010;
+        }
+
+        .chart-box {
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .review {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .Positive {
+            color: #16a36a;
+            font-weight: bold;
+        }
+
+        .Negative {
+            color: #e34b4b;
+            font-weight: bold;
+        }
+
+        .Neutral {
+            color: #e5a32d;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+
+        @media (max-width: 750px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            header {
+                flex-direction: column;
+            }
+
+            nav a {
+                margin: 8px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Product Sentiment Analyzer</h2>
+
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/history">Review History</a>
+        <a href="/download">Download CSV</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <div class="welcome">
+        <h1>Product Review Dashboard</h1>
+        <p>Analyze text and understand customer sentiment.</p>
+    </div>
+
+    <div class="search-box">
+        <form method="POST" action="/">
+            <input
+                type="text"
+                name="product"
+                placeholder="Enter product name..."
+                value="{{ product }}"
+                required
+            >
+
+            <button type="submit">Analyze Reviews</button>
+        </form>
+    </div>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Reviews</h3>
+            <p class="total">{{ total_reviews }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Positive</h3>
+            <p class="positive">{{ counts.Positive }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Negative</h3>
+            <p class="negative">{{ counts.Negative }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Neutral</h3>
+            <p class="neutral">{{ counts.Neutral }}</p>
+        </div>
+
+    </div>
+
+    <div class="chart-box">
+        <h2 style="text-align:center;">Sentiment Analysis Chart</h2>
+
+        <div class="chart-container">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="reviews-box">
+        <h2>Analyzed Reviews</h2>
+
+        {% for item in results %}
+
+        <div class="review">
+            <p>{{ item.review }}</p>
+
+            <p>
+                Sentiment:
+                <span class="{{ item.sentiment }}">
+                    {{ item.sentiment }}
+                </span>
+            </p>
+        </div>
+
+        {% else %}
+
+        <p>No new reviews analyzed. Enter a product name to begin.</p>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<footer>
+    Product Sentiment Analyzer | Academic Project
+</footer>
+
+<script>
+    const positive = Number("{{ counts.Positive }}");
+    const negative = Number("{{ counts.Negative }}");
+    const neutral = Number("{{ counts.Neutral }}");
+
+    const ctx = document.getElementById("sentimentChart");
+
+    new Chart(ctx, {
+        type: "doughnut",
+
+        data: {
+            labels: ["Positive", "Negative", "Neutral"],
+
+            datasets: [{
+                data: [positive, negative, neutral],
+                backgroundColor: [
+                    "#16a36a",
+                    "#e34b4b",
+                    "#e5a32d"
+                ],
+                borderWidth: 2
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
